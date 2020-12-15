@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Main Page of App</title>
+</head>
+<body>
+    <h1>Test Application</h1>
+    <h5>Name: {{ name }} Surname: {{surname}}</h5>
+
+    <form action="/main" method="POST" accept-charset="utf-8" enctype="application/x-www-form-urlencoded">
+        <label for="name">Login</label>
+        <input id="name" name="name" type="text" value="" autofocus/>
+        <label for="surname">Surname</label>
+        <input id="surname" name="surname" type="test" value=""/>
+        <input type="submit" value="login"/>
+    </form>
+</body>
+</html>
