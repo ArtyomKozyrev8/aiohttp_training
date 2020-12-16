@@ -189,7 +189,7 @@ async def redirect_route(req: web.Request) -> web.Response:
 # Application factory patter
 
 
-def init_func(argv=None) -> web.Application:
+def init_func() -> web.Application:
     """Application factory"""
     app = web.Application()
 
