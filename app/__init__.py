@@ -189,7 +189,7 @@ async def redirect_route(req: web.Request) -> web.Response:
 # Application factory patter
 
 
-def init_func() -> web.Application:
+def init_func(args=None) -> web.Application:
     """Application factory"""
     app = web.Application()
 
@@ -210,6 +210,10 @@ def init_func() -> web.Application:
             web.get("/", index, name="index")
         ]
     )
+    # add static files handling
+    # /static - all urls in templates will be like /static/filename
+    # "app/static" - folder with files
+    app.add_routes([web.static('/static', "app/static")])
     for resource in app.router.resources():
         print(resource)
 
