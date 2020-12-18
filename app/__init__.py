@@ -12,12 +12,76 @@ import jinja2
 
 routes = web.RouteTableDef()  # helps to follow Flask style route decorators
 
+########################################################################################################################
+
+# signal example
+
+
+async def on_prepare(request, response):
+    # can change headers even in websocket messages and stream responses
+    response.headers['My-Header'] = 'value_here'
+
+
+########################################################################################################################
+
+# middleware with arg
+
+
+def middleware_factory(text):
+    @web.middleware
+    async def sample_middleware(request, handler):
+        resp = await handler(request)
+        print(text)
+        return resp
+    return sample_middleware
+
+
+########################################################################################################################
+
+# Customized error handler if error number is 401
+
+@web.middleware
+async def error_middleware(request, handler):
+    try:
+        response = await handler(request)
+    except web.HTTPException as ex:
+        if ex.status != 401:
+            raise
+        return web.json_response({"error": "not really authorised"}, status=401)
+    return response
+
+
+########################################################################################################################
+
+# Just random middleware example
+
+
+@web.middleware
+async def middleware1(request, handler):
+    print('Middleware 1 called')
+    response = await handler(request)
+    print('Middleware 1 finished')
+    return response
+
+
+@web.middleware
+async def middleware2(request, handler):
+    print('Middleware 2 called')
+    response = await handler(request)
+    print('Middleware 2 finished')
+    return response
+
+########################################################################################################################
+
 
 def check_if_login(f):
     """Decorator to login"""
     @wraps(f)
     async def inner(request):
         session = await get_session(request)
+        # request['my_private_key'] = "data"
+        # request-life-long storage (above line) can be in further used in inner function
+        # the same can be done with response object
         if not (session.get("name", None) and session.get("surname", None)):
             raise web.HTTPUnauthorized()
         else:
@@ -127,7 +191,8 @@ async def json_auth_endpoint(req: web.Request) -> web.Response:
 
 async def return_json(req: web.Request) -> web.Response:
     """Return json"""
-    return web.json_response({"x": 1, "y": 2})
+    c = req.app.get("imaginary_connector", None)
+    return web.json_response({"x": 1, "y": 2, "imaginary_connector": c})
 
 
 @aiohttp_jinja2.template("main.html")
@@ -191,12 +256,16 @@ async def redirect_route(req: web.Request) -> web.Response:
 
 def init_func(args=None) -> web.Application:
     """Application factory"""
-    app = web.Application()
+    app = web.Application(middlewares=[error_middleware, middleware_factory("zorro!"), middleware1, middleware2])
+
+    app.on_response_prepare.append(on_prepare)  # signal added
+
+    app["imaginary_connector"] = "the_imaginary_connector"  # context "global" vars (see use case in return_json func)
 
     secret_key = b'\xc9\x11\xf3^k\x00\n\xb4l\xd4\xb8\xd5\xaaEY\x91\xbd\xf9\xb2~\x87\xac\xd9u^pn\xe9Ty3Q'
     setup(app, EncryptedCookieStorage(secret_key, cookie_name="test_website"))  # create session concept
 
-    aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader("app/templates")) # setup jinja
+    aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader("app/templates"))  # setup jinja
 
     app.add_routes(routes)
     app.add_routes(
