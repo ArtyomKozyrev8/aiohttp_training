@@ -9,6 +9,13 @@ ENV TZ=Europe/Moscow
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN /usr/local/bin/python -m pip install --upgrade pip
 
+# TO RUN C LIBS
+RUN apk add gcc \
+ musl-dev \
+ libffi-dev \
+ make \
+ libressl-dev
+
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
