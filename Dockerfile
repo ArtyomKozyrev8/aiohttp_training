@@ -27,6 +27,9 @@ RUN addgroup -S appgroup && adduser -S the_user -G appgroup
 RUN chown -R the_user:appgroup /usr/src/app
 RUN chmod 755 /usr/src/app
 
+RUN chown -R the_user:appgroup /usr/src/uploads
+RUN chmod 755 /usr/src/uploads
+
 # Tell docker that all future commands should run as the appuser user
 USER the_user
 
