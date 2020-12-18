@@ -1,6 +1,6 @@
 FROM python:3.9-alpine
 
-WORKDIR /usr/src/app
+WORKDIR /usr/src
 
 RUN apk add --no-cache tzdata
 
@@ -30,4 +30,6 @@ RUN chmod 755 /usr/src/app
 # Tell docker that all future commands should run as the appuser user
 USER the_user
 
-CMD python3 -m aiohttp.web -H localhost -P 8080 app:init_func
+# do not try to open port less than 1000 with no sudo rights
+# how to run WITHOUT GUNICORN command
+CMD python3 -m aiohttp.web -H 0.0.0.0 -P 9999 app:init_func
