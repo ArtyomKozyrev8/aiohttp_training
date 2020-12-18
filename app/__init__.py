@@ -254,7 +254,7 @@ async def redirect_route(req: web.Request) -> web.Response:
 # Application factory patter
 
 
-def init_func(args=None) -> web.Application:
+async def init_func() -> web.Application:
     """Application factory"""
     app = web.Application(middlewares=[error_middleware, middleware_factory("zorro!"), middleware1, middleware2])
 
