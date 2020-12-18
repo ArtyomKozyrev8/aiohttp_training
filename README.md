@@ -7,7 +7,7 @@ python -m aiohttp.web -H localhost -P 8080 app:init_func
 
 **How to run with Gunicorn (not work in Windows)**
 
-gunicorn app:init_func --bind localhost:9999 --worker-class aiohttp.GunicornWebWorker
+gunicorn app:init_func --bind 0.0.0.0:9999 --worker-class aiohttp.GunicornWebWorker
 
 **How to run in Docker**
 

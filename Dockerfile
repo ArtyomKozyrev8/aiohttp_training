@@ -35,4 +35,7 @@ USER the_user
 
 # do not try to open port less than 1000 with no sudo rights
 # how to run WITHOUT GUNICORN command
-CMD python3 -m aiohttp.web -H 0.0.0.0 -P 9999 app:init_func
+#CMD python3 -m aiohttp.web -H 0.0.0.0 -P 9999 app:init_func
+
+# how to run with GUNICORN:
+CMD gunicorn app:init_func --bind 0.0.0.0:9999 --worker-class aiohttp.GunicornWebWorker
