@@ -9,6 +9,8 @@ from aiohttp_session import setup, get_session
 import aiohttp_jinja2
 import jinja2
 
+from app2 import init_func_2
+
 
 routes = web.RouteTableDef()  # helps to follow Flask style route decorators
 
@@ -257,6 +259,10 @@ async def redirect_route(req: web.Request) -> web.Response:
 async def init_func() -> web.Application:
     """Application factory"""
     app = web.Application(middlewares=[error_middleware, middleware_factory("zorro!"), middleware1, middleware2])
+
+    # added another app (subapp)
+    app2 = await init_func_2()
+    app.add_subapp(prefix="/app2/", subapp=app2)
 
     app.on_response_prepare.append(on_prepare)  # signal added
 
