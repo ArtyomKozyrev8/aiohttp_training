@@ -266,12 +266,40 @@ async def on_shutdown(app):
 
 ########################################################################################################################
 
-# Application factory patter
+async def do_work() -> None:
+    """some background task"""
+    while True:
+        print("Do work!")
+        await asyncio.sleep(3)
+
+
+async def background_worker(app) -> None:
+    """this happens on start signal"""
+    app["back_task"] = asyncio.create_task(do_work())
+
+
+async def stop_background_worker(app) -> None:
+    """this happens when app stops"""
+    try:
+        app["back_task"].cancel()
+        await app["back_task"]
+    except asyncio.CancelledError:
+        print("Goodbye background Task due to Cancel!")
+    finally:
+        print("Goodbye background Task!")
+
+########################################################################################################################
+
+# Application factory pattern
 
 
 async def init_func() -> web.Application:
     """Application factory"""
     app = web.Application(middlewares=[error_middleware, middleware_factory("zorro!"), middleware1, middleware2])
+
+    app.on_startup.append(background_worker)
+
+    app.on_cleanup.append(stop_background_worker)
 
     # added another app (subapp)
     app2 = await init_func_2()
