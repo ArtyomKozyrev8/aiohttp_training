@@ -4,10 +4,12 @@ import os
 from typing import Dict, Any
 
 from aiohttp import web, WSMsgType
+from aiohttp import WSCloseCode
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 from aiohttp_session import setup, get_session
 import aiohttp_jinja2
 import jinja2
+import weakref
 
 from app2 import init_func_2
 
@@ -129,6 +131,7 @@ async def listen_to_socket(ws: web.WebSocketResponse):
 async def websocket_handler(req:  web.Request) -> web.WebSocketResponse:
     """Socket aiohttp handler"""
     ws = web.WebSocketResponse()
+    req.app['websockets'].add(ws)  # add websocket to WeakSet in order to close ws from signal
     await ws.prepare(req)
 
     t1 = asyncio.create_task(listen_to_socket(ws))
@@ -253,6 +256,16 @@ async def redirect_route(req: web.Request) -> web.Response:
 
 ########################################################################################################################
 
+
+async def on_shutdown(app):
+    """The signal makes websockets to close as soon as signal received, otherwise can run much longer"""
+    for ws in set(app['websockets']):
+        print(ws)
+        await ws.close(code=WSCloseCode.GOING_AWAY, message='Server shutdown')
+
+
+########################################################################################################################
+
 # Application factory patter
 
 
@@ -291,6 +304,12 @@ async def init_func() -> web.Application:
     app.add_routes([web.static('/static', "app/static")])
     for resource in app.router.resources():
         print(resource)
+
+    # place to store sockets globally in the process
+    # pay attention that if we have several process workers (e.g. in Gunicorn)
+    # each process will have it's own app['websockets']
+    app['websockets'] = weakref.WeakSet()
+    app.on_shutdown.append(on_shutdown)
 
     return app
 
