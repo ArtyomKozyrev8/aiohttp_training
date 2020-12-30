@@ -303,6 +303,10 @@ async def init_func() -> web.Application:
         force=True  # key element to supress other logs
     )
 
+    gunicorn_logger = logging.getLogger('gunicorn.error')
+    app.logger.handlers = gunicorn_logger.handlers
+    app.logger.setLevel(gunicorn_logger.level)
+
     app.on_startup.append(background_worker)
 
     app.on_cleanup.append(stop_background_worker)
