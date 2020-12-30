@@ -25,10 +25,10 @@ async def m():
     t2 = asyncio.create_task(y())
     t3 = asyncio.create_task(x())
     t4 = asyncio.create_task(x())
-    sh1 = asyncio.shield(t2)
+    sh1 = asyncio.shield(t1)
     sh2 = asyncio.shield(t2)  # declared but not used !
-    sh3 = asyncio.shield(t2)
-    sh4 = asyncio.shield(t2)
+    sh3 = asyncio.shield(t3)
+    sh4 = asyncio.shield(t4)
 
     # pay attention that we cancel not original t1, t3, t4
     # only t2 will be canceled in the case
