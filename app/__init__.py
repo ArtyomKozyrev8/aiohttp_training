@@ -1,8 +1,8 @@
 import asyncio
+import logging
 from functools import wraps
 import os
 from typing import Dict, Any
-
 from aiohttp import web, WSMsgType
 from aiohttp import WSCloseCode
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
@@ -35,7 +35,7 @@ def middleware_factory(text):
     @web.middleware
     async def sample_middleware(request, handler):
         resp = await handler(request)
-        print(text)
+        logging.info(text)
         return resp
     return sample_middleware
 
@@ -62,17 +62,17 @@ async def error_middleware(request, handler):
 
 @web.middleware
 async def middleware1(request, handler):
-    print('Middleware 1 called')
+    logging.info('Middleware 1 called')
     response = await handler(request)
-    print('Middleware 1 finished')
+    logging.info('Middleware 1 finished')
     return response
 
 
 @web.middleware
 async def middleware2(request, handler):
-    print('Middleware 2 called')
+    logging.info('Middleware 2 called')
     response = await handler(request)
-    print('Middleware 2 finished')
+    logging.info('Middleware 2 finished')
     return response
 
 ########################################################################################################################
@@ -123,7 +123,7 @@ async def listen_to_socket(ws: web.WebSocketResponse):
             else:
                 await ws.send_str(msg.data + '/answer')
         elif msg.type == WSMsgType.ERROR:
-            print('ws connection closed with exception %s' %
+            logging.info('ws connection closed with exception %s' %
                   ws.exception())
 
 
@@ -138,7 +138,7 @@ async def websocket_handler(req:  web.Request) -> web.WebSocketResponse:
     t2 = asyncio.create_task(send_to_socket(ws))
     await t1, t2
 
-    print('websocket connection closed')
+    logging.info('websocket connection closed')
 
     return ws
 
@@ -162,12 +162,12 @@ async def upload_page(req: web.Request) -> web.Response:
     multipart_reader = await req.multipart()  # we get MultipartReader
 
     field = await multipart_reader.next()
-    print(field.name)  # just to show what is happening
-    print(await field.text(encoding="utf8"))
+    logging.info(field.name)  # just to show what is happening
+    logging.info(await field.text(encoding="utf8"))
 
     field = await multipart_reader.next()
-    print(field.name)
-    print(field.filename)
+    logging.info(field.name)
+    logging.info(field.filename)
 
     size = 0
     with open(os.path.join(os.getcwd(), "uploads", field.filename), 'wb') as f:
@@ -260,7 +260,7 @@ async def redirect_route(req: web.Request) -> web.Response:
 async def on_shutdown(app):
     """The signal makes websockets to close as soon as signal received, otherwise can run much longer"""
     for ws in set(app['websockets']):
-        print(ws)
+        logging.info(ws)
         await ws.close(code=WSCloseCode.GOING_AWAY, message='Server shutdown')
 
 
@@ -269,7 +269,7 @@ async def on_shutdown(app):
 async def do_work() -> None:
     """some background task"""
     while True:
-        print("Do work!")
+        logging.info("Do work!")
         await asyncio.sleep(3)
 
 
@@ -284,9 +284,9 @@ async def stop_background_worker(app) -> None:
         app["back_task"].cancel()
         await app["back_task"]
     except asyncio.CancelledError:
-        print("Goodbye background Task due to Cancel!")
+        logging.info("Goodbye background Task due to Cancel!")
     finally:
-        print("Goodbye background Task!")
+        logging.info("Goodbye background Task!")
 
 ########################################################################################################################
 
@@ -296,6 +296,12 @@ async def stop_background_worker(app) -> None:
 async def init_func() -> web.Application:
     """Application factory"""
     app = web.Application(middlewares=[error_middleware, middleware_factory("zorro!"), middleware1, middleware2])
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(levelname)s || %(asctime)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S',
+        force=True  # key element to supress other logs
+    )
 
     app.on_startup.append(background_worker)
 
@@ -331,7 +337,7 @@ async def init_func() -> web.Application:
     # "app/static" - folder with files
     app.add_routes([web.static('/static', "app/static")])
     for resource in app.router.resources():
-        print(resource)
+        logging.info(resource)
 
     # place to store sockets globally in the process
     # pay attention that if we have several process workers (e.g. in Gunicorn)
