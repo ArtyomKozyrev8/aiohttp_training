@@ -9,6 +9,7 @@ from aiohttp_session import setup, get_session
 import aiohttp_jinja2
 import jinja2
 from aiohttp.web import RouteTableDef
+import logging
 
 routes = RouteTableDef()
 
@@ -18,6 +19,9 @@ async def hello_world_2(req: web.Request) -> web.Response:
     session = await get_session(req)
     name = session.get("name", "None")
     surname = session.get("surname", "None")
+
+    logging.info("hello world from app2")
+
     return web.json_response(
         {
             "answer": "Hello world from app # 2",
@@ -36,7 +40,7 @@ async def hello_world_2(req: web.Request) -> Dict[str, Any]:
     return {"app": "App # 2", "name": name, "surname": surname}
 
 
-async def init_func_2() -> web.Application:
+async def init_func_2(args=None) -> web.Application:
     """Application factory"""
     app = web.Application()
 

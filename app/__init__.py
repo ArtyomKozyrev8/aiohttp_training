@@ -10,11 +10,20 @@ from aiohttp_session import setup, get_session
 import aiohttp_jinja2
 import jinja2
 import weakref
+from random import randint
 
 from app2 import init_func_2
 
 
 routes = web.RouteTableDef()  # helps to follow Flask style route decorators
+
+
+@routes.get("/react_random_num")
+async def react_random_num_call(request: web.Request) -> web.Response:
+    resp = web.json_response({"res": f"Result from Aiohttp : {randint(1, 100)}"})
+    # add header to response to use with react app
+    resp.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+    return resp
 
 ########################################################################################################################
 
@@ -270,7 +279,7 @@ async def do_work() -> None:
     """some background task"""
     while True:
         logging.info("Do work!")
-        await asyncio.sleep(3)
+        await asyncio.sleep(30)
 
 
 async def background_worker(app) -> None:
@@ -293,8 +302,8 @@ async def stop_background_worker(app) -> None:
 # Application factory pattern
 
 
-async def init_func() -> web.Application:
-    """Application factory"""
+async def init_func(args=None) -> web.Application:
+    """Application factory for standalone run"""
     app = web.Application(middlewares=[error_middleware, middleware_factory("zorro!"), middleware1, middleware2])
 
     logging.basicConfig(
@@ -349,6 +358,12 @@ async def init_func() -> web.Application:
     app['websockets'] = weakref.WeakSet()
     app.on_shutdown.append(on_shutdown)
 
+    return app
+
+
+async def init_func_gunicorn():
+    """is used to run aiohttp with gunicorn as middleware"""
+    app = init_func()
     return app
 
 

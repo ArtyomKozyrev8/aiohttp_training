@@ -38,4 +38,4 @@ USER the_user
 #CMD python3 -m aiohttp.web -H 0.0.0.0 -P 9999 app:init_func
 
 # how to run with GUNICORN:
-CMD gunicorn app:init_func --bind 0.0.0.0:9999 --worker-class aiohttp.GunicornWebWorker
+CMD gunicorn app:init_func_gunicorn --bind 0.0.0.0:9999 --worker-class aiohttp.GunicornWebWorker
