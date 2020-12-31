@@ -363,7 +363,7 @@ async def init_func(args=None) -> web.Application:
 
 async def init_func_gunicorn():
     """is used to run aiohttp with gunicorn as middleware"""
-    app = init_func()
+    app = await init_func()
     return app
 
 
